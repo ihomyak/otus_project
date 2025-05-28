@@ -1,0 +1,9 @@
+.idea
+deployment
+.env
+.golangci.yml
+compose.yaml
+Makefile
+README.md
+
+
