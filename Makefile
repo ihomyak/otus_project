@@ -1,5 +1,6 @@
 GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
+GOLANGCI_LINT_VERSION := "v1.57.2"
 
 help:
 	@echo "\
@@ -39,8 +40,16 @@ migrate-status:
 migrate-reset:
 	goose reset
 
+install-lint-deps:
+	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_LINT_VERSION)
+
 lint:
+	install-lint-deps
 	golangci-lint run ./...
+
+lint-fix:
+	gofmt -s -w .
+	golangci-lint run --fix
 
 test:
 	go test -race -count 10 ./internal/...
@@ -60,6 +69,3 @@ restart:
 bin-build:
 	go build -v -ldflags "$(LDFLAGS)" -o ./bin/server ./cmd/main.go
 
-lint-fix:
-	gofmt -s -w .
-	golangci-lint run --fix
