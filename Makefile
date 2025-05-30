@@ -1,3 +1,6 @@
+GIT_HASH := $(shell git log --format="%h" -n 1)
+LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
+
 help:
 	@echo "\
 Usage: \n\
@@ -11,6 +14,7 @@ Usage: \n\
          | lint                         Проверить код на ошибки\n\
          | lint-fix                     Исправить ошибки в коде\n\
          | test                         Запустить тесты\n\
+         | bin-build                    Собрать бинарник\n\
          | migrate-create   	        Создать новую миграцию \n\
          | migrate-up                   Применить все миграции\n\
          | migrate-down                 Откатить последнюю миграцию\n\
@@ -53,7 +57,9 @@ stop:
 restart:
 	docker compose restart
 
+bin-build:
+	go build -v -ldflags "$(LDFLAGS)" -o ./bin/server ./cmd/main.go
+
 lint-fix:
 	gofmt -s -w .
 	golangci-lint run --fix
-

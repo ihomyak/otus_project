@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"log/slog"
@@ -21,12 +20,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/redis/go-redis/v9"
 )
-
-type PostRequest struct {
-	Text string `json:"text"`
-	Data string `json:"data"`
-	IP   string `json:"ip"`
-}
 
 type HookRequest struct {
 	Text string `json:"text"`
@@ -80,7 +73,7 @@ func main() {
 		middleware.AuthMiddleware(
 			middleware.RateLimiterMiddleware(
 				func(w http.ResponseWriter, r *http.Request) {
-					createPostHandler(w, r)
+					handlers.CreatePostHandler(w, r)
 				},
 				rdb,
 			),
@@ -154,27 +147,4 @@ func main() {
 
 	l.Info("server start on port", slog.String("port", appConfig.Server.Port))
 	log.Panic(httpServer.ListenAndServe())
-}
-
-func createPostHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		server.RespondError(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	var req PostRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		server.RespondError(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
-
-	if req.Text == "" {
-		server.RespondError(w, "Text is required", http.StatusBadRequest)
-		return
-	}
-
-	// Здесь можно добавить логику сохранения поста в базу данных
-
-	server.RespondSuccess(w, "Post created successfully")
 }
