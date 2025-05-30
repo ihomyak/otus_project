@@ -43,8 +43,7 @@ migrate-reset:
 install-lint-deps:
 	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_LINT_VERSION)
 
-lint:
-	install-lint-deps
+lint: install-lint-deps
 	golangci-lint run ./...
 
 lint-fix:
