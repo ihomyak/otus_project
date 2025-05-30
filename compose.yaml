@@ -1,0 +1,40 @@
+services:
+  pgsql:
+    build:
+      context: ./
+      dockerfile: ./deployment/pgsql/Dockerfile
+    hostname: pgsql
+    container_name: pgsql
+    environment:
+      - POSTGRES_USER=${DB_USERNAME:?err}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:?err}
+      - POSTGRES_DB=${DB_DATABASE:?err}
+      - PGDATA=/var/lib/postgresql/data/db_data/
+    expose:
+      - "5432/tcp"
+    ports:
+      - "5552:5432/tcp"
+    restart: unless-stopped
+    volumes:
+      - ./deployment/pgsql/data:/var/lib/postgresql/data:delegated
+
+  redis:
+    image: eqalpha/keydb:x86_64_v6.0.16
+    ports:
+      - 6662:6379
+    restart: unless-stopped
+
+  app:
+    build:
+      context: ./
+      dockerfile: ./deployment/Dockerfile
+    hostname: app
+    container_name: app
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT:?err}"
+    expose:
+      - ${SERVER_PORT}
+    depends_on:
+      - pgsql
+    restart: unless-stopped
+
